@@ -1,7 +1,8 @@
 package com.digiverse.scanner;
 
 
-public class Scanner {
+public class LineScanner {
+	public static final int INVALID_CODE = -1;
 	private static final int BAR_COUNT = 5;
 	private static final int SPAN_COUNT = BAR_COUNT * 2;
 	private static final int WIDE_COUNT = 2;	
@@ -11,23 +12,23 @@ public class Scanner {
 	private static final float MIN_WIDE_FACTOR = 1.5f;
 	private static final float MAX_WIDE_FACTOR = 2.5f;
 	
-	private final ScannerListener listener;
 	private final float[] points = new float[SPAN_COUNT + 1];
 	private int index = 0;
 		
-	public Scanner(ScannerListener listener) {
+	public LineScanner() {
 		super();
-		this.listener = listener;
 	}
 
-	public void white(float x) {
+	public int white(float x) {
+		int result = INVALID_CODE;
 		if (whiteExpected()) {
 			points[index++] = x;
 			if (index > SPAN_COUNT) {
-				match();
+				result = match();
 				skipOldest();
 			}
 		}
+		return result;
 	}
 
 	public void black(float x) {
@@ -44,22 +45,18 @@ public class Scanner {
 		return index % 2 == 0;
 	}
 
-	private void match() {
-		float tickSize = (points[SPAN_COUNT] - points[0]) / TICK_COUNT;
-		float minNarrowSize = MIN_NARROW_FACTOR * tickSize; 
-		float maxNarrowSize = MAX_NARROW_FACTOR * tickSize; 
-		float minWideSize = MIN_WIDE_FACTOR * tickSize; 
-		float maxWideSize = MAX_WIDE_FACTOR * tickSize; 
-
+	private int match() {
+		float tickSize = (points[SPAN_COUNT] - points[0]) / TICK_COUNT;		
 		int code = 0;
 		int wideBarCount = 0; 
 		int wideSpaceCount = 0;
 		for (int i = 0; i < SPAN_COUNT; i++) {
 			float spanSize = points[i + 1] - points[i];
-			if (minNarrowSize <= spanSize && spanSize <= maxNarrowSize) {
+			float spanFactor = spanSize / tickSize;
+			if (MIN_NARROW_FACTOR <= spanFactor && spanFactor <= MAX_NARROW_FACTOR) {
 				// Narrow span
 				code = code << 1;
-			} else if (minWideSize <= spanSize && spanSize <= maxWideSize) {
+			} else if (MIN_WIDE_FACTOR <= spanFactor && spanFactor <= MAX_WIDE_FACTOR) {
 				// Wide span
 				code = (code << 1) | 1;
 				if (i % 2 == 0) {
@@ -69,21 +66,15 @@ public class Scanner {
 				}
 			} else {
 				// Span is neither narrow nor wide - code is unreadeble
-				return;
+				return INVALID_CODE;
 			}
 		}
-		if (wideBarCount == WIDE_COUNT && wideSpaceCount == WIDE_COUNT) {
-			found(code);
-		}	
+		return (wideBarCount == WIDE_COUNT && wideSpaceCount == WIDE_COUNT) ? code : INVALID_CODE;
 	}
 
 	private void skipOldest() {
 		System.arraycopy(points, 2, points, 0, SPAN_COUNT - 1);
 		index -= 2;
-	}
-
-	private void found(int code) {
-		listener.scanned(code);		
 	}
 	
 }
