@@ -7,7 +7,7 @@ package com.mydigiverse.scanner;
  *   1. Leading black bar with width of at least 3 units (may be more).
  *   2. Ten alternating white and black bars, of which 3 white bars and 3 black bars are of single width and
  *      two white bars and 2 black bars are of double width.
- *   3. One traling white bar of single width .
+ *   3. One traling white bar of single width.
  *   4. Trailing black bar.
  *   
  * Barcode value is encoded by widths of ten alternating white and black bars (as defined in item 2) each bar
