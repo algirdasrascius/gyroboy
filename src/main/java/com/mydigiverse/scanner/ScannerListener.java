@@ -1,4 +1,4 @@
-package com.digiverse.scanner;
+package com.mydigiverse.scanner;
 
 public interface ScannerListener {
 	
