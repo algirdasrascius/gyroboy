@@ -3,17 +3,26 @@ apply plugin: 'eclipse'
 
 sourceCompatibility = 1.7
 version = '1.0'
+
+def mainClass = 'com.mydigiverse.robot.EV3Robot'  
+
 jar {
     manifest {
-        attributes 'Implementation-Title': 'leJOS Gyro Boy', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'leJOS Gyro Boy', 
+                   'Implementation-Version': version,
+                   'Main-Class': mainClass
     }
 }
 
 repositories {
-    mavenCentral()
+	mavenCentral()
+    flatDir {
+  		dirs 'lib'
+    }
 }
 
 dependencies {
+    compile fileTree(dir: 'lib', include: ['*.jar'])
     testCompile group: 'junit', name: 'junit', version: '4.+'
     testCompile group: 'org.mockito', name: 'mockito-core', version: '1.9.5+'
 }
