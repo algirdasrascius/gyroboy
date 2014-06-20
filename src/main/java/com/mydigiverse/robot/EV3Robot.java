@@ -19,8 +19,9 @@ public class EV3Robot {
     	try (RegulatedMotor motor1 = new EV3LargeRegulatedMotor(MotorPort.B);
     		 RegulatedMotor motor2 = new EV3LargeRegulatedMotor(MotorPort.C)) {
     		
-    		motor1.setSpeed(50);
-    		motor2.setSpeed(50);
+    		int speed = 150;
+    		motor1.setSpeed(speed);
+    		motor2.setSpeed(speed);
     		motor1.resetTachoCount();
     		motor2.resetTachoCount();
     		motor1.forward();

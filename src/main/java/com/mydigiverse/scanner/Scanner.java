@@ -26,7 +26,7 @@ public class Scanner {
 		minBlackLevel = LEVEL_COUNT;
 	}
 	
-	public int process(float x, float value) {
+	public int process(int x, float value) {
 		int result = LineScanner.INVALID_CODE;
 		while (minBlackLevel < LEVEL_COUNT && value > LEVELS[minBlackLevel]) {
 			lineScanners[minBlackLevel].white(x);

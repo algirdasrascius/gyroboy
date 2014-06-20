@@ -32,26 +32,27 @@ public class LineScanner {
 	private static final int SPAN_COUNT = 1 + CODE_BAR_COUNT + 1; // Trailing black bar not included
 	private static final int WIDE_COUNT = 2;	
 	private static final int TICK_COUNT = CODE_BAR_COUNT + 2 * WIDE_COUNT + 1; // Code bars + white trailing bar 
-	private static final float MIN_LEADING_FACTOR = 2.5f;
-	private static final float MIN_NARROW_FACTOR = 0.7f;
-	private static final float MAX_NARROW_FACTOR = 1.3f;
-	private static final float MIN_WIDE_FACTOR = 1.5f;
-	private static final float MAX_WIDE_FACTOR = 2.5f;
+	private static final int TICK_COUNT_X10 = TICK_COUNT * 10; 
+	private static final int MIN_LEADING_FACTOR_X10 = 25;
+	private static final int MIN_NARROW_FACTOR_X10 = 7;
+	private static final int MAX_NARROW_FACTOR_X10 = 13;
+	private static final int MIN_WIDE_FACTOR_X10 = 15;
+	private static final int MAX_WIDE_FACTOR_X10 = 25;
 	
-	private final float[] points = new float[SPAN_COUNT + 1];
+	private final int[] points = new int[SPAN_COUNT + 1];
 	private int index = 0;
 		
 	public LineScanner() {
 		super();
 	}
 
-	public void white(float x) {
+	public void white(int x) {
 		if (whiteExpected()) {
 			points[index++] = x;
 		}
 	}
 
-	public int black(float x) {
+	public int black(int x) {
 		int result = INVALID_CODE;
 		if (blackExpected()) {
 			points[index++] = x;
@@ -76,35 +77,41 @@ public class LineScanner {
 	}
 
 	private int match() {
-		float tickSize = (points[SPAN_COUNT] - points[1]) / TICK_COUNT;
+		int totalUnits = points[SPAN_COUNT] - points[1];
+		float tickSize = totalUnits / TICK_COUNT;
+		
+		int minLeadingUnits = totalUnits * MIN_LEADING_FACTOR_X10 / TICK_COUNT_X10;
 		
 		// Check that leading black bar is wide enough 
-		float leadingSize = points[1] - points[0];
-		float leadingFactor = leadingSize / tickSize;
-		if (leadingFactor < MIN_LEADING_FACTOR) {
+		int leadingSize = points[1] - points[0];
+		if (leadingSize < minLeadingUnits) {
 			// Leading black bar its too narrow
 			return INVALID_CODE;
 		}
 
+		int minNarrowUnits = totalUnits * MIN_NARROW_FACTOR_X10 / TICK_COUNT_X10;
+		int maxNarrowUnits = totalUnits * MAX_NARROW_FACTOR_X10 / TICK_COUNT_X10;
+
 		// Check that training white bar is narrow 
-		float tralingSize = points[SPAN_COUNT] - points[SPAN_COUNT - 1];
-		float trailingFactor = tralingSize / tickSize;
-		if (trailingFactor < MIN_NARROW_FACTOR || trailingFactor > MAX_NARROW_FACTOR) {
+		int tralingSize = points[SPAN_COUNT] - points[SPAN_COUNT - 1];
+		if (tralingSize < minNarrowUnits || tralingSize > maxNarrowUnits) {
 			// Trailing white bar its not single width
 			return INVALID_CODE;
 		}
+
+		int minWideUnits = totalUnits * MIN_WIDE_FACTOR_X10 / TICK_COUNT_X10;
+		int maxWideUnits = totalUnits * MAX_WIDE_FACTOR_X10 / TICK_COUNT_X10;
 
 		// Check Calculate code
 		int code = 0;
 		int wideBarCount = 0; 
 		int wideSpaceCount = 0;
 		for (int i = 2; i < SPAN_COUNT; i++) {
-			float barSize = points[i] - points[i-1];
-			float barFactor = barSize / tickSize;
-			if (MIN_NARROW_FACTOR <= barFactor && barFactor <= MAX_NARROW_FACTOR) {
+			int barSize = points[i] - points[i-1];
+			if (minNarrowUnits <= barSize && barSize <= maxNarrowUnits) {
 				// Narrow span
 				code = code << 1;
-			} else if (MIN_WIDE_FACTOR <= barFactor && barFactor <= MAX_WIDE_FACTOR) {
+			} else if (minWideUnits <= barSize && barSize <= maxWideUnits) {
 				// Wide span
 				code = (code << 1) | 1;
 				if (i % 2 == 0) {
